@@ -1,0 +1,57 @@
+version: "3"
+
+services:
+  bartender:
+    image: "dotnet-rabbitmq-bartender"
+    build:
+      context: .
+      dockerfile: Bartender/Dockerfile
+    ports:
+      - "5001:80"
+    networks:
+      - "app-net"
+    depends_on:
+      - "rabbitmq"
+      - "postgres"
+
+  orders:
+    image: "dotnet-rabbitmq-orders"
+    build:
+      context: .
+      dockerfile: Orders/Dockerfile
+    ports:
+      - "5002:80"
+    networks:
+      - "app-net"
+    depends_on:
+      - "rabbitmq"
+      - "postgres"
+
+  rabbitmq:
+    image: "rabbitmq:3.8-management-alpine"
+    restart: on-failure
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - "app-net"
+
+  postgres:
+    image: "postgres:12.1-alpine"
+    restart: on-failure
+    ports:
+      - "5432:5432"
+    volumes:
+      - "pgdata:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - "app-net"
+
+networks:
+  app-net:
+    driver: "bridge"
+
+volumes:
+  pgdata:
+    external: true
